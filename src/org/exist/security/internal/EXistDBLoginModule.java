@@ -32,7 +32,10 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
 
-//import org.apache.log4j.Logger;
+import org.apache.log4j.Logger;
+import org.eclipse.jetty.plus.jaas.JAASRole;
+import org.eclipse.jetty.plus.jaas.spi.AbstractLoginModule;
+import org.eclipse.jetty.plus.jaas.spi.UserInfo;
 import org.exist.EXistException;
 import org.exist.security.AuthenticationException;
 import org.exist.storage.BrokerPool;
@@ -41,9 +44,9 @@ import org.exist.storage.BrokerPool;
  * @author <a href="mailto:shabanovd@gmail.com">Dmitriy Shabanov</a>
  * 
  */
-public class EXistDBLoginModule implements javax.security.auth.spi.LoginModule {
+public class EXistDBLoginModule extends AbstractLoginModule {
 
-//	private final static Logger LOG = Logger.getLogger(EXistLoginModule.class);
+//	private final static Logger LOG = Logger.getLogger(EXistDBLoginModule.class);
 
 	// initial state
 	private Subject subject;
@@ -58,6 +61,7 @@ public class EXistDBLoginModule implements javax.security.auth.spi.LoginModule {
 	private boolean succeeded = false;
 	private boolean commitSucceeded = false;
 	private org.exist.security.Subject userPrincipal = null;
+    private UserInfo jaasUser = null;
 
 	/**
 	 * Initialize this <code>LoginModule</code>.
@@ -158,7 +162,7 @@ public class EXistDBLoginModule implements javax.security.auth.spi.LoginModule {
 		} catch (final EXistException e) {
 			throw new FailedLoginException(e.getMessage());
 		}
-		
+
 		succeeded = userPrincipal.isAuthenticated();
 		return true;
 	}
@@ -193,7 +197,16 @@ public class EXistDBLoginModule implements javax.security.auth.spi.LoginModule {
 			// to the Subject
 
 			if (!subject.getPrincipals().contains(userPrincipal))
-				{subject.getPrincipals().add(userPrincipal);}
+				{
+                    subject.getPrincipals().add(userPrincipal);
+
+
+                    for (String group : userPrincipal.getGroups()){
+			//                        System.out.println("adding " + group + " to subject" );
+                        subject.getPrincipals().add(new JAASRole(group));
+                    }
+
+                }
 
 			if (debug) {
 				System.out.println("\t\t[eXistLoginModule] added User to Subject");
@@ -204,7 +217,13 @@ public class EXistDBLoginModule implements javax.security.auth.spi.LoginModule {
 		}
 	}
 
-	/**
+    @Override
+    public UserInfo getUserInfo(String s) throws Exception {
+        // NOT USED
+        return jaasUser;
+    }
+
+    /**
 	 * <p>
 	 * This method is called if the LoginContext's overall authentication
 	 * failed. (the relevant REQUIRED, REQUISITE, SUFFICIENT and OPTIONAL
