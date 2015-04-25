@@ -757,7 +757,7 @@ public class XQueryTrigger extends SAXTrigger implements DocumentTrigger, Collec
 		if (events.contains(TriggerEvents.EVENTS.MOVE_DOCUMENT)) {
 			finish(6, broker, txn, oldUri, document.getURI(), false);
 		} else {
-		    execute(false, broker, txn, afterMoveDocument, oldUri);
+		    execute(false, broker, txn, afterMoveDocument, oldUri, document.getURI());
 	    }
 	}
 
