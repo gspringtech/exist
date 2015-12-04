@@ -136,7 +136,7 @@ public class ZipFileFunctions extends BasicFunction {
 
                 } else { // copy this entry to output
                     if (ze.isDirectory()) { // can't add empty directory to Zip
-                        ZipEntry dirEntry = new ZipEntry(ze.getName() + System.getProperty("file.separator") + ".");
+                        ZipEntry dirEntry = new ZipEntry(ze); // the original ze should have the correct name
                         zos.putNextEntry(dirEntry);
                     } else {               // copy file across
                         ZipEntry nze = new ZipEntry(zen);

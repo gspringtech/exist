@@ -15,18 +15,18 @@
   <!-- XMLRPC servlet -->
   <forward pattern="/xmlrpc" servlet="org.exist.xmlrpc.RpcServlet"/>
   
-  <!-- betterFORM resource-servlet -->
+  <!-- betterFORM resource-servlet   -->
   <forward pattern=".*bfResources/" servlet="ResourceServlet"/>
-  
+
   <!-- REST interface -->
   <forward pattern="/(rest|servlet)/" servlet="EXistServlet"/>
   
   <!-- WebDAV interface -->
   <forward pattern="/webdav/" servlet="milton"/>
   
-  <!-- Atom Publishing Protocol -->
+  <!-- Atom Publishing Protocol
   <forward pattern="/atom/" servlet="AtomServlet"/>
-  
+   -->
   <!-- RESTXQ -->
   <forward pattern="/restxq/" servlet="RestXqServlet"/>
   
@@ -35,12 +35,12 @@
   <forward pattern="/oauth" servlet="OAuthServlet"/>
   -->
   
-  <!-- Apache SOAP interface -->
+  <!-- Apache SOAP interface
   <forward pattern="/axis-servlet/AxisServlet" servlet="AxisServlet"/>
   <forward pattern=".*\.jws" servlet="AxisServlet"/>
   <forward pattern="/services" servlet="AxisServlet"/>
   <forward pattern="/axis-servlet/AdminServlet" servlet="AdminServlet"/>
-  
+   -->
   <!-- scale images on the fly and cache the output. -->
   <!-- 
   <forward pattern="/images" servlet="ScaleImageJAI"/>
@@ -53,18 +53,22 @@
     ++ Default configuration: main web application is served from the
     ++ webapp directory. 
   -->
+<!--
   <root pattern="/apps/library" path="xmldb:exist:///db/apps/tamboti"/>
   <root pattern="/apps/tamboti" path="xmldb:exist:///db/apps/tamboti"/>
-  
+  -->
   <root pattern="/apps" path="xmldb:exist:///db/apps"/>
   
+  <root pattern="/pekoe-app"   path="xmldb:exist:///db/apps/pekoe"/>    
+  <root pattern="/pekoe-files" path="xmldb:exist:///db/pekoe"/>
+  <!--
   <root pattern="/solutions" path="xmldb:exist:///db/solutions/"/>
-  
+  -->
   <!-- 
     ++ To redirect requests based on the server name (i.e. www.example.com)
-  	++ to a specific collection within the database, comment out the following
-  	++ root line and uncomment the block below with the server-name
-  	++ attribute.
+    ++ to a specific collection within the database, comment out the following
+    ++ root line and uncomment the block below with the server-name
+    ++ attribute.
     -->
   <root pattern=".*" path="/"/>
   
