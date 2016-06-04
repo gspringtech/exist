@@ -107,63 +107,65 @@ public class ZipFileFunctions extends BasicFunction {
             throw new XPathException("Different number of paths (" + paths.length + ") and binaries (" + binaries.length + ")");
         }
 
-        ZipFileSource zipFileSource =  new ZipFileFromDb(uri);
-        ZipInputStream zis = null;
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ZipFileSource zipFileSource =  new ZipFileFromDb(uri)) {
 
-        HashMap<String, BinaryValue> binariesTable = new HashMap<String, BinaryValue>(paths.length);
-        for (int i = 0; i < paths.length; i++) {
-            binariesTable.put(paths[i], binaries[i]);
-        }
 
-        try
-        {
-            zis = zipFileSource.getStream();
-            ZipOutputStream zos = new ZipOutputStream(baos); // zos is the output - the result
-            ZipEntry ze;
-            byte[] buffer = new byte[16384];
-            int bytes_read;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-            while ((ze = zis.getNextEntry())!= null){
-                String zen = ze.getName();
+            HashMap<String, BinaryValue> binariesTable = new HashMap<String, BinaryValue>(paths.length);
+            for (int i = 0; i < paths.length; i++) {
+                binariesTable.put(paths[i], binaries[i]);
+            }
 
-                if (binariesTable.containsKey(zen)) { // Replace this entry
-                    ZipEntry nze = new ZipEntry(zen);
-                    zos.putNextEntry(nze);
-                    binariesTable.get(zen).streamBinaryTo(zos);
-                    binariesTable.remove(zen);
+            try (ZipInputStream zis = zipFileSource.getStream();
+                 ZipOutputStream zos = new ZipOutputStream(baos);)
+            {
 
-                } else { // copy this entry to output
-                    if (ze.isDirectory()) { // can't add empty directory to Zip
-                        ZipEntry dirEntry = new ZipEntry(ze); // the original ze should have the correct name
-                        zos.putNextEntry(dirEntry);
-                    } else {               // copy file across
+
+                ZipEntry ze;
+                byte[] buffer = new byte[16384];
+                int bytes_read;
+
+                while ((ze = zis.getNextEntry())!= null){
+                    String zen = ze.getName();
+
+                    if (binariesTable.containsKey(zen)) { // Replace this entry
                         ZipEntry nze = new ZipEntry(zen);
                         zos.putNextEntry(nze);
-                        while((bytes_read = zis.read(buffer)) != -1)
-                            zos.write(buffer, 0, bytes_read);
+                        binariesTable.get(zen).streamBinaryTo(zos);
+                        binariesTable.remove(zen);
+
+                    } else { // copy this entry to output
+                        if (ze.isDirectory()) { // can't add empty directory to Zip
+                            ZipEntry dirEntry = new ZipEntry(ze.getName() + System.getProperty("file.separator") + ".");
+                            zos.putNextEntry(dirEntry);
+                        } else {               // copy file across
+                            ZipEntry nze = new ZipEntry(zen);
+                            zos.putNextEntry(nze);
+                            while((bytes_read = zis.read(buffer)) != -1)
+                                zos.write(buffer, 0, bytes_read);
+                        }
+
                     }
-
                 }
-            }
-            // add any remaining items as NEW entries
-            for (Map.Entry<String, BinaryValue> entry : binariesTable.entrySet()) {
-                ZipEntry nze = new ZipEntry(entry.getKey());
-                zos.putNextEntry(nze);
-                entry.getValue().streamBinaryTo(zos);
-            }
-            zos.close();
-            zis.close();
+                // add any remaining items as NEW entries
+                for (Map.Entry<String, BinaryValue> entry : binariesTable.entrySet()) {
+                    ZipEntry nze = new ZipEntry(entry.getKey());
+                    zos.putNextEntry(nze);
+                    entry.getValue().streamBinaryTo(zos);
+                }
+                zos.close();
+                zis.close();
 
-            return BinaryValueFromInputStream.getInstance(context, new Base64BinaryValueType(), new ByteArrayInputStream(baos.toByteArray()));
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-            throw new XPathException("IO Exception in zip:update");
-        } catch (PermissionDeniedException e) {
-            logger.error(e.getMessage(), e);
-            throw new XPathException("Permission denied to read the source zip");
-        }
+                return BinaryValueFromInputStream.getInstance(context, new Base64BinaryValueType(), new ByteArrayInputStream(baos.toByteArray()));
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+                throw new XPathException("IO Exception in zip:update");
+            } catch (PermissionDeniedException e) {
+                logger.error(e.getMessage(), e);
+                throw new XPathException("Permission denied to read the source zip");
+            }} catch (Exception e) { throw new XPathException(this, e);}
     }
 
 
@@ -232,7 +234,7 @@ public class ZipFileFunctions extends BasicFunction {
     }
 
     // copied from
-    public interface ZipFileSource {
+    public interface ZipFileSource extends AutoCloseable {
         public ZipInputStream getStream() throws IOException, PermissionDeniedException;
 
         public void close();
