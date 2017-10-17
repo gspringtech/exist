@@ -67,6 +67,7 @@
             <New id="exist-webapp-context" class="org.exist.jetty.WebAppContext">
               <!-- can either be '/exist' or '/' -->
               <Set name="contextPath">/exist</Set>
+	      <Set name="maxFormContentSize">10485760</Set>
               <Set name="war"><SystemProperty name="jetty.home" default="."/>/../../webapp/</Set>
               <Set name="defaultsDescriptor"><SystemProperty name="jetty.home" default="."
                 />/etc/webdefault.xml</Set>

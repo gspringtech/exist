@@ -61,6 +61,8 @@
   
   <root pattern="/pekoe-app"   path="xmldb:exist:///db/apps/pekoe"/>    
   <root pattern="/pekoe-files" path="xmldb:exist:///db/pekoe"/>
+  <root pattern="/external" path="xmldb:exist:///db/external"/>
+
   <!--
   <root pattern="/solutions" path="xmldb:exist:///db/solutions/"/>
   -->
